@@ -1,11 +1,12 @@
-# Setiap kali tag v* di-push (mis. v1.0.1), GitHub membangun installer Windows
-# dan menerbitkannya ke halaman Releases. Aplikasi yang sudah terpasang akan
-# mendeteksi rilis ini dan menawarkan pembaruan.
+# Setiap kali package.json berubah di branch main (biasanya karena "version" dinaikkan),
+# GitHub membangun installer Windows dan menerbitkannya ke halaman Releases dengan tag
+# v<versi>. Aplikasi yang sudah terpasang akan mendeteksi rilis ini dan menawarkan pembaruan.
 name: Rilis Windows
 
 on:
   push:
-    tags: ["v*"]
+    branches: [main]
+    paths: [package.json]
   workflow_dispatch:
 
 permissions:

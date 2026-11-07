@@ -35,13 +35,9 @@ sudah login tidak perlu dipindai ulang. Bisa juga dicek manual lewat ikon tray â
 ### Merilis versi baru
 
 1. Naikkan `"version"` di `package.json` (mis. `1.0.1`).
-2. Commit, lalu buat tag dan push:
-   ```
-   git tag v1.0.1
-   git push && git push --tags
-   ```
-3. GitHub Actions membangun installer dan menerbitkannya ke Releases. Beberapa menit
-   kemudian semua pengguna mendapat tawaran pembaruan.
+2. Commit dan push ke `main`.
+3. GitHub Actions membangun installer dan menerbitkannya ke Releases sebagai `v1.0.1`.
+   Beberapa menit kemudian semua pengguna mendapat tawaran pembaruan.
 
 ## Menjalankan dari kode sumber
 
