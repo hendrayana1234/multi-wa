@@ -1,0 +1,240 @@
+:root {
+  --bg: #111b21;
+  --rail: #1a242b;
+  --rail-edge: #26323a;
+  --card: #202c33;
+  --text: #e9edef;
+  --muted: #8696a0;
+  --accent: #25a884;
+  --accent-ink: #062b21;
+  --danger: #ef4444;
+  --rail-w: 76px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.45 "Segoe UI", system-ui, -apple-system, sans-serif;
+  overflow: hidden;
+  user-select: none;
+}
+
+button { font: inherit; color: inherit; cursor: pointer; }
+
+/* ---------- Sidebar ---------- */
+#sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: var(--rail-w);
+  background: var(--rail);
+  border-right: 1px solid var(--rail-edge);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 0 10px;
+  gap: 6px;
+}
+
+#accounts {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+#accounts::-webkit-scrollbar { display: none; }
+
+.acc {
+  position: relative;
+  width: 100%;
+  background: none;
+  border: 0;
+  padding: 4px 0 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.acc .avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.02em;
+  color: #fff;
+  transition: border-radius 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+}
+.acc:hover .avatar { border-radius: 14px; }
+.acc:active .avatar { transform: scale(0.95); }
+
+.acc .name {
+  max-width: 68px;
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.acc.active .avatar {
+  border-radius: 14px;
+  box-shadow: 0 0 0 2px var(--rail), 0 0 0 4px var(--text);
+}
+.acc.active .name { color: var(--text); font-weight: 600; }
+.acc.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 13px;
+  width: 4px;
+  height: 30px;
+  border-radius: 0 4px 4px 0;
+  background: var(--text);
+}
+
+.acc .badge {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  margin-left: 10px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+  box-shadow: 0 0 0 3px var(--rail);
+}
+
+.acc:focus-visible, .add:focus-visible, .help:focus-visible { outline: none; }
+.acc:focus-visible .avatar { box-shadow: 0 0 0 2px var(--rail), 0 0 0 4px var(--accent); }
+
+.add {
+  margin-top: 4px;
+  width: 46px;
+  height: 46px;
+  flex: none;
+  border-radius: 50%;
+  border: 1.5px dashed #3b4a54;
+  background: transparent;
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  transition: border-radius 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+}
+.add:hover, .add:focus-visible { border-radius: 14px; background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+
+.spacer { flex: 1; }
+
+.help {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--rail-edge);
+  background: transparent;
+  color: var(--muted);
+  font-weight: 700;
+}
+.help:hover, .help:focus-visible { color: var(--text); border-color: var(--muted); }
+
+/* ---------- Layar kosong ---------- */
+#empty {
+  position: fixed;
+  inset: 0 0 0 var(--rail-w);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+#empty[hidden] { display: none; }
+
+.empty-card { max-width: 440px; text-align: center; }
+.empty-card img { border-radius: 22px; }
+.empty-card h1 { margin: 14px 0 4px; font-size: 26px; font-weight: 600; }
+.empty-card .lead { margin: 0 0 22px; color: var(--muted); }
+.empty-card ol {
+  text-align: left;
+  margin: 0 0 26px;
+  padding: 16px 18px 16px 38px;
+  background: var(--card);
+  border-radius: 12px;
+  color: #d1d7db;
+}
+.empty-card li + li { margin-top: 8px; }
+
+/* ---------- Tombol ---------- */
+.primary, .ghost {
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 22px;
+  font-weight: 600;
+}
+.primary { background: var(--accent); color: var(--accent-ink); }
+.primary:hover { filter: brightness(1.08); }
+.ghost { background: transparent; color: var(--accent); }
+.ghost:hover { background: rgba(37, 168, 132, 0.12); }
+.primary:focus-visible, .ghost:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+
+/* ---------- Modal ---------- */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 10, 13, 0.72);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  z-index: 10;
+}
+.modal[hidden] { display: none; }
+
+.modal-card {
+  width: min(420px, 100%);
+  background: var(--card);
+  border-radius: 14px;
+  padding: 22px 24px 18px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  user-select: text;
+}
+.modal-card h2 { margin: 0 0 16px; font-size: 18px; font-weight: 600; }
+.modal-card label { display: block; font-size: 12px; color: var(--accent); margin-bottom: 6px; }
+.modal-card input {
+  width: 100%;
+  font: inherit;
+  font-size: 15px;
+  color: var(--text);
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid var(--accent);
+  padding: 6px 2px;
+  outline: none;
+}
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 22px; }
+
+.keys { width: 100%; border-collapse: collapse; }
+.keys td { padding: 7px 0; border-bottom: 1px solid #2a3942; vertical-align: middle; }
+.keys td:first-child { white-space: nowrap; padding-right: 16px; }
+.keys td:last-child { color: #d1d7db; }
+kbd {
+  display: inline-block;
+  min-width: 22px;
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: #2a3942;
+  border-bottom: 2px solid #1b252c;
+  font: 12px/1.6 "Segoe UI", system-ui, sans-serif;
+  text-align: center;
+}
+.hint { color: var(--muted); font-size: 13px; margin: 14px 0 0; }

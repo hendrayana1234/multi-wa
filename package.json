@@ -1,0 +1,57 @@
+{
+  "name": "multi-wa",
+  "productName": "Multi WA",
+  "version": "1.0.0",
+  "description": "Buka beberapa akun WhatsApp sekaligus di Windows",
+  "main": "src/main.js",
+  "author": "Hendrayana",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hendrayana1234/multi-wa.git"
+  },
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win nsis",
+    "release": "electron-builder --win nsis --publish always"
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.11"
+  },
+  "devDependencies": {
+    "electron": "^45.2.3",
+    "electron-builder": "^26.0.0"
+  },
+  "build": {
+    "appId": "id.multiwa.app",
+    "productName": "Multi WA",
+    "artifactName": "MultiWA-Setup-${version}.${ext}",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "publish": {
+      "provider": "github",
+      "owner": "hendrayana1234",
+      "repo": "multi-wa",
+      "releaseType": "release"
+    },
+    "win": {
+      "icon": "build/icon.png",
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Multi WA",
+      "deleteAppDataOnUninstall": false
+    }
+  }
+}

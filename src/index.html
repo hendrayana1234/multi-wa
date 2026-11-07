@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:" />
+  <title>Multi WA</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <nav id="sidebar" aria-label="Akun WhatsApp">
+    <div id="accounts" role="list"></div>
+    <button id="add" class="add" title="Tambah akun (Ctrl+Shift+N)" aria-label="Tambah akun">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+        <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+      </svg>
+    </button>
+    <div class="spacer"></div>
+    <button id="help" class="help" title="Pintasan keyboard" aria-label="Bantuan">?</button>
+  </nav>
+
+  <main id="empty">
+    <div class="empty-card">
+      <img src="icon.png" alt="" width="88" height="88" />
+      <h1>Multi WA</h1>
+      <p class="lead">Buka beberapa akun WhatsApp sekaligus, masing-masing dengan login terpisah.</p>
+      <ol>
+        <li>Klik <b>Tambah akun</b> dan beri nama (mis. "Pribadi", "Toko").</li>
+        <li>Di HP: WhatsApp &rsaquo; <b>Perangkat tertaut</b> &rsaquo; <b>Tautkan perangkat</b>.</li>
+        <li>Pindai kode QR yang muncul. Ulangi untuk akun berikutnya.</li>
+      </ol>
+      <button id="add-big" class="primary">Tambah akun WhatsApp</button>
+    </div>
+  </main>
+
+  <div id="modal" class="modal" hidden>
+    <form id="modal-form" class="modal-card" autocomplete="off">
+      <h2 id="modal-title">Tambah akun</h2>
+      <label for="modal-input">Nama akun</label>
+      <input id="modal-input" maxlength="40" placeholder="mis. Pribadi, Toko, Kantor" />
+      <div class="modal-actions">
+        <button type="button" id="modal-cancel" class="ghost">Batal</button>
+        <button type="submit" class="primary" id="modal-ok">Simpan</button>
+      </div>
+    </form>
+  </div>
+
+  <div id="help-modal" class="modal" hidden>
+    <div class="modal-card">
+      <h2>Pintasan keyboard</h2>
+      <table class="keys">
+        <tr><td><kbd>Ctrl</kbd> + <kbd>1</kbd>…<kbd>9</kbd></td><td>Pindah ke akun ke-1 s/d 9</td></tr>
+        <tr><td><kbd>Ctrl</kbd> + <kbd>Tab</kbd></td><td>Akun berikutnya</td></tr>
+        <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>N</kbd></td><td>Tambah akun</td></tr>
+        <tr><td><kbd>Ctrl</kbd> + <kbd>R</kbd></td><td>Muat ulang akun aktif</td></tr>
+        <tr><td><kbd>Ctrl</kbd> + <kbd>+</kbd> / <kbd>-</kbd> / <kbd>0</kbd></td><td>Perbesar / perkecil / normal</td></tr>
+      </table>
+      <p class="hint">Klik kanan ikon akun untuk ganti nama, urutkan, atau hapus.
+        Menutup jendela tidak mematikan aplikasi; keluar lewat ikon di tray.</p>
+      <div class="modal-actions">
+        <button type="button" id="help-close" class="primary">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

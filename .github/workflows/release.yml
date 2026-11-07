@@ -1,0 +1,26 @@
+# Setiap kali tag v* di-push (mis. v1.0.1), GitHub membangun installer Windows
+# dan menerbitkannya ke halaman Releases. Aplikasi yang sudah terpasang akan
+# mendeteksi rilis ini dan menawarkan pembaruan.
+name: Rilis Windows
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
