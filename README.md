@@ -14,6 +14,7 @@ Di baliknya, tiap akun adalah WhatsApp Web resmi (`web.whatsapp.com`) yang ditau
 - Tetap jalan di tray saat jendela ditutup (opsi "Jalankan saat Windows menyala" di menu tray; saat startup aplikasi mulai tersembunyi di tray)
 - Klik kanan ikon akun: ganti nama, matikan notifikasi & suara per akun, muat ulang, muat ulang bersih (jika macet), urutkan, hapus
 - Tautan dari chat dibuka di browser biasa
+- Ekspor / impor pengaturan (menu tray) untuk menyalin daftar akun ke PC lain; login tetap perlu pindai QR di PC baru
 
 ## Pintasan
 

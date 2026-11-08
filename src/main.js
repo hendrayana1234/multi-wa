@@ -294,6 +294,101 @@ function moveAccount(id, delta) {
   pushState();
 }
 
+// ---------- Ekspor / impor pengaturan (untuk pindah PC) ----------
+async function exportSettings() {
+  const { canceled, filePath } = await dialog.showSaveDialog(win, {
+    title: 'Ekspor pengaturan Multi WA',
+    defaultPath: path.join(app.getPath('documents'), 'multi-wa-pengaturan.json'),
+    filters: [{ name: 'Pengaturan Multi WA', extensions: ['json'] }],
+  });
+  if (canceled || !filePath) return;
+  const data = {
+    app: 'multi-wa',
+    format: 1,
+    exportedAt: new Date().toISOString(),
+    accounts: state.accounts.map((a) => ({ name: a.name, color: a.color, muted: !!a.muted })),
+  };
+  try {
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+    dialog.showMessageBox(win, {
+      type: 'info',
+      title: 'Pengaturan diekspor',
+      message: `${data.accounts.length} akun disimpan ke:\n${filePath}`,
+      detail: 'Salin file ini ke PC lain, lalu pilih "Impor pengaturan…" di menu tray. ' +
+        'Login WhatsApp tidak ikut tersalin; di PC baru tiap akun perlu dipindai QR sekali.',
+    });
+  } catch (err) {
+    dialog.showErrorBox('Gagal mengekspor', String(err.message || err));
+  }
+}
+
+async function importSettings() {
+  const { canceled, filePaths } = await dialog.showOpenDialog(win, {
+    title: 'Impor pengaturan Multi WA',
+    filters: [{ name: 'Pengaturan Multi WA', extensions: ['json'] }],
+    properties: ['openFile'],
+  });
+  if (canceled || !filePaths.length) return;
+
+  let data;
+  try {
+    data = JSON.parse(fs.readFileSync(filePaths[0], 'utf8'));
+    if (data.app !== 'multi-wa' || !Array.isArray(data.accounts)) throw new Error('bukan file pengaturan Multi WA');
+  } catch (err) {
+    dialog.showErrorBox('File tidak valid', `File ini tidak bisa dibaca: ${err.message || err}`);
+    return;
+  }
+
+  const existing = new Set(state.accounts.map((a) => a.name.toLowerCase()));
+  const incoming = data.accounts
+    .map((a) => ({
+      name: String(a.name || '').trim().slice(0, 40),
+      color: typeof a.color === 'string' && /^#[0-9a-f]{6}$/i.test(a.color) ? a.color : null,
+      muted: !!a.muted,
+    }))
+    .filter((a) => a.name);
+  const fresh = incoming.filter((a) => !existing.has(a.name.toLowerCase()));
+
+  if (!fresh.length) {
+    dialog.showMessageBox(win, {
+      type: 'info',
+      title: 'Tidak ada yang diimpor',
+      message: 'Semua akun di file ini sudah ada di PC ini (dicocokkan berdasarkan nama).',
+    });
+    return;
+  }
+
+  const { response } = await dialog.showMessageBox(win, {
+    type: 'question',
+    title: 'Impor pengaturan',
+    message: `Tambahkan ${fresh.length} akun dari file ini?`,
+    detail: fresh.map((a) => `• ${a.name}${a.muted ? ' (notifikasi mati)' : ''}`).join('\n') +
+      (incoming.length > fresh.length ? `\n\n${incoming.length - fresh.length} akun dilewati karena namanya sudah ada.` : '') +
+      '\n\nSetiap akun baru perlu dipindai QR dari HP.',
+    buttons: ['Impor', 'Batal'],
+    defaultId: 0,
+    cancelId: 1,
+  });
+  if (response !== 0) return;
+
+  let firstId = null;
+  for (const a of fresh) {
+    const acc = {
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      name: a.name,
+      color: a.color || COLORS[state.accounts.length % COLORS.length],
+      muted: a.muted,
+    };
+    state.accounts.push(acc);
+    createView(acc);
+    firstId = firstId || acc.id;
+  }
+  saveState();
+  pushState();
+  showWindow();
+  if (firstId) activate(firstId);
+}
+
 // ---------- Pintasan keyboard ----------
 function handleShortcut(event, input) {
   if (input.type !== 'keyDown' || !input.control) return;
@@ -417,6 +512,9 @@ function createTray() {
         // Saat dijalankan dari startup, mulai tersembunyi di tray (--hidden).
         click: (item) => app.setLoginItemSettings({ openAtLogin: item.checked, args: ['--hidden'] }),
       },
+      { type: 'separator' },
+      { label: 'Ekspor pengaturan…', click: exportSettings },
+      { label: 'Impor pengaturan…', click: importSettings },
       { type: 'separator' },
       { label: 'Periksa pembaruan…', click: () => updater.checkNow() },
       { label: `Versi ${app.getVersion()}`, enabled: false },
