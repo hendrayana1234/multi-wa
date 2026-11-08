@@ -49,6 +49,9 @@ let isQuitting = false;
 let overlayOpen = false;
 let activeId = null;
 let downloadPercent = null;
+let peeking = false; // panel akun sedang diintip (mouse di tepi kiri) saat disembunyikan
+const PEEK_STRIP = 6;
+const sidebarWidth = () => (state.sidebarHidden && !peeking ? PEEK_STRIP : SIDEBAR_WIDTH);
 const views = new Map(); // id -> { view, unread, cssKey }
 
 // ---------- Penyimpanan daftar akun ----------
@@ -84,6 +87,7 @@ const accountOf = (id) => state.accounts.find((a) => a.id === id);
 function publicState() {
   return {
     active: activeId,
+    sidebarHidden: !!state.sidebarHidden,
     accounts: state.accounts.map((a) => ({
       id: a.id,
       name: a.name,
@@ -108,7 +112,8 @@ function pushState() {
 function layout() {
   if (!win || win.isDestroyed()) return;
   const [w, h] = win.getContentSize();
-  const bounds = { x: SIDEBAR_WIDTH, y: 0, width: Math.max(0, w - SIDEBAR_WIDTH), height: h };
+  const sw = sidebarWidth();
+  const bounds = { x: sw, y: 0, width: Math.max(0, w - sw), height: h };
   for (const { view } of views.values()) view.setBounds(bounds);
 }
 
@@ -203,6 +208,8 @@ function createView(acc) {
   });
 
   wc.on('before-input-event', handleShortcut);
+  // Klik ke dalam WhatsApp menutup panel yang sedang diintip.
+  wc.on('focus', () => { if (peeking) { peeking = false; layout(); } });
 
   // Status bisu & mode privasi diterapkan setiap halaman selesai dimuat (termasuk setelah reload).
   wc.setAudioMuted(!!acc.muted);
@@ -340,6 +347,22 @@ function setPrivacy(on) {
   if (tray) buildTrayMenu();
 }
 
+// ---------- Sembunyikan panel akun ----------
+function setSidebarHidden(hidden) {
+  state.sidebarHidden = !!hidden;
+  peeking = false;
+  layout();
+  saveState();
+  pushState();
+  if (tray) buildTrayMenu();
+}
+
+ipcMain.on('sidebar:peek', (_e, on) => {
+  if (!state.sidebarHidden) return;
+  peeking = !!on;
+  layout();
+});
+
 // ---------- Ekspor / impor pengaturan (untuk pindah PC) ----------
 async function exportSettings() {
   const { canceled, filePath } = await dialog.showSaveDialog(win, {
@@ -451,6 +474,9 @@ function handleShortcut(event, input) {
       const i = state.accounts.findIndex((a) => a.id === activeId);
       activate(state.accounts[(i + (input.shift ? n - 1 : 1)) % n].id);
     }
+    event.preventDefault();
+  } else if (key === 'h' && input.shift) {
+    setSidebarHidden(!state.sidebarHidden);
     event.preventDefault();
   } else if (key === 'b' && input.shift) {
     setPrivacy(!state.privacy);
@@ -564,6 +590,12 @@ function buildTrayMenu() {
         type: 'checkbox',
         checked: !!state.privacy,
         click: (item) => setPrivacy(item.checked),
+      },
+      {
+        label: 'Sembunyikan panel akun\tCtrl+Shift+H',
+        type: 'checkbox',
+        checked: !!state.sidebarHidden,
+        click: (item) => setSidebarHidden(item.checked),
       },
       {
         label: 'Jalankan saat Windows menyala',

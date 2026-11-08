@@ -39,6 +39,20 @@ button { font: inherit; color: inherit; cursor: pointer; }
   gap: 6px;
 }
 
+/* Panel disembunyikan: tersisa garis tipis di tepi kiri sebagai pegangan. */
+body.collapsed #sidebar { box-shadow: 4px 0 18px rgba(0, 0, 0, 0.45); }
+body.collapsed #sidebar::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 1px;
+  width: 3px;
+  height: 36px;
+  margin-top: -18px;
+  border-radius: 2px;
+  background: #3b4a54;
+}
+
 #accounts {
   display: flex;
   flex-direction: column;

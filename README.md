@@ -14,6 +14,7 @@ Di baliknya, tiap akun adalah WhatsApp Web resmi (`web.whatsapp.com`) yang ditau
 - Tetap jalan di tray saat jendela ditutup (opsi "Jalankan saat Windows menyala" di menu tray; saat startup aplikasi mulai tersembunyi di tray)
 - Klik kanan ikon akun: ganti nama, matikan notifikasi & suara per akun, muat ulang, muat ulang bersih (jika macet), urutkan, hapus
 - Tautan dari chat dibuka di browser biasa
+- Panel akun bisa disembunyikan (`Ctrl+Shift+H`); sentuh tepi kiri jendela untuk mengintipnya
 - Teks buram (mode privasi, `Ctrl+Shift+B`): daftar chat dan isi pesan diburamkan tipis agar tidak terbaca sekilas; bagian yang disorot mouse terlihat jelas
 - Ekspor / impor pengaturan (menu tray) untuk menyalin daftar akun ke PC lain; login tetap perlu pindai QR di PC baru
 
@@ -25,6 +26,7 @@ Di baliknya, tiap akun adalah WhatsApp Web resmi (`web.whatsapp.com`) yang ditau
 | `Ctrl` + `Tab` / `Ctrl` + `Shift` + `Tab` | Akun berikutnya / sebelumnya |
 | `Ctrl` + `Shift` + `N` | Tambah akun |
 | `Ctrl` + `Shift` + `B` | Teks buram (mode privasi) nyala/mati |
+| `Ctrl` + `Shift` + `H` | Sembunyikan / tampilkan panel akun |
 | `Ctrl` + `R` | Muat ulang akun aktif |
 | `Ctrl` + `+` / `-` / `0` | Perbesar / perkecil / normal |
 

@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld('multiwa', {
   menu: (id) => ipcRenderer.invoke('account:menu', id),
   overlay: (open) => ipcRenderer.invoke('overlay', open),
   setBadge: (dataUrl, count) => ipcRenderer.send('badge', dataUrl, count),
+  peek: (on) => ipcRenderer.send('sidebar:peek', on),
   onState: (cb) => ipcRenderer.on('state', (_e, s) => cb(s)),
   onOpenAdd: (cb) => ipcRenderer.on('open-add', () => cb()),
 });

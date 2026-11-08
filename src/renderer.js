@@ -22,6 +22,7 @@ function initials(name) {
 function render(s) {
   current = s;
   emptyEl.hidden = s.accounts.length > 0;
+  document.body.classList.toggle('collapsed', !!s.sidebarHidden);
   listEl.replaceChildren(
     ...s.accounts.map((acc, i) => {
       const btn = document.createElement('button');
@@ -137,6 +138,11 @@ document.addEventListener('keydown', (e) => {
 $('add').addEventListener('click', () => openModal({ type: 'add' }));
 $('add-big').addEventListener('click', () => openModal({ type: 'add' }));
 api.onOpenAdd(() => { if (modal.hidden && helpModal.hidden) openModal({ type: 'add' }); });
+
+// Panel disembunyikan: mouse menyentuh tepi kiri -> panel muncul sementara, keluar -> tutup lagi.
+const sidebar = $('sidebar');
+sidebar.addEventListener('mouseenter', () => { if (current.sidebarHidden) api.peek(true); });
+sidebar.addEventListener('mouseleave', () => { if (current.sidebarHidden) api.peek(false); });
 
 api.onState(render);
 api.getState().then(render);
