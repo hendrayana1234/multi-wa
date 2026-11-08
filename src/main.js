@@ -16,6 +16,23 @@ const WA_URL = 'https://web.whatsapp.com/';
 const CHROME_UA =
   `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ` +
   `(KHTML, like Gecko) Chrome/${process.versions.chrome} Safari/537.36`;
+// Mode privasi: buram tipis pada daftar chat, isi pesan, dan media, cukup supaya tidak terbaca
+// sekilas dari jauh tapi tidak tampak seperti sengaja ditutupi. Bagian yang disorot mouse jelas.
+const PRIVACY_CSS = `
+  #pane-side div[role="listitem"], #pane-side [role="row"],
+  #main .message-in, #main .message-out, #main header {
+    filter: blur(2.5px) !important;
+    transition: filter 0.2s ease;
+  }
+  #app [data-testid="conversation-panel-body"] img,
+  #app [data-testid="conversation-panel-body"] video {
+    filter: blur(4px) !important;
+  }
+  #pane-side div[role="listitem"]:hover, #pane-side [role="row"]:hover,
+  #main .message-in:hover, #main .message-out:hover, #main header:hover {
+    filter: none !important;
+  }
+`;
 const COLORS = ['#25a884', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
 const ICON_PATH = path.join(__dirname, 'icon.png');
 
@@ -32,7 +49,7 @@ let isQuitting = false;
 let overlayOpen = false;
 let activeId = null;
 let downloadPercent = null;
-const views = new Map(); // id -> { view, unread }
+const views = new Map(); // id -> { view, unread, cssKey }
 
 // ---------- Penyimpanan daftar akun ----------
 const stateFile = () => path.join(app.getPath('userData'), 'accounts.json');
@@ -187,9 +204,14 @@ function createView(acc) {
 
   wc.on('before-input-event', handleShortcut);
 
-  // Status bisu dikirim ke halaman setiap selesai dimuat (termasuk setelah reload).
+  // Status bisu & mode privasi diterapkan setiap halaman selesai dimuat (termasuk setelah reload).
   wc.setAudioMuted(!!acc.muted);
-  wc.on('did-finish-load', () => wc.send('muted', !!accountOf(acc.id)?.muted));
+  wc.on('did-finish-load', () => {
+    wc.send('muted', !!accountOf(acc.id)?.muted);
+    const entry = views.get(acc.id);
+    if (entry) entry.cssKey = null;
+    applyPrivacy(acc.id);
+  });
 
   wc.on('render-process-gone', (_e, details) => {
     if (details.reason !== 'clean-exit') setTimeout(() => !wc.isDestroyed() && wc.reload(), 1500);
@@ -197,7 +219,7 @@ function createView(acc) {
 
   wc.loadURL(WA_URL, { userAgent: CHROME_UA });
   win.contentView.addChildView(view);
-  views.set(acc.id, { view, unread: 0 });
+  views.set(acc.id, { view, unread: 0, cssKey: null });
   layout();
   refreshVisibility();
 }
@@ -292,6 +314,30 @@ function moveAccount(id, delta) {
   [state.accounts[i], state.accounts[j]] = [state.accounts[j], state.accounts[i]];
   saveState();
   pushState();
+}
+
+// ---------- Mode privasi (teks buram) ----------
+async function applyPrivacy(id) {
+  const entry = views.get(id);
+  if (!entry) return;
+  const wc = entry.view.webContents;
+  if (wc.isDestroyed() || wc.isLoading()) return;
+  try {
+    if (state.privacy && !entry.cssKey) {
+      entry.cssKey = await wc.insertCSS(PRIVACY_CSS);
+    } else if (!state.privacy && entry.cssKey) {
+      await wc.removeInsertedCSS(entry.cssKey);
+      entry.cssKey = null;
+    }
+  } catch { /* halaman sedang berganti; akan diterapkan lagi saat selesai dimuat */ }
+}
+
+function setPrivacy(on) {
+  state.privacy = !!on;
+  for (const id of views.keys()) applyPrivacy(id);
+  saveState();
+  pushState();
+  if (tray) buildTrayMenu();
 }
 
 // ---------- Ekspor / impor pengaturan (untuk pindah PC) ----------
@@ -406,6 +452,9 @@ function handleShortcut(event, input) {
       activate(state.accounts[(i + (input.shift ? n - 1 : 1)) % n].id);
     }
     event.preventDefault();
+  } else if (key === 'b' && input.shift) {
+    setPrivacy(!state.privacy);
+    event.preventDefault();
   } else if (key === 'n' && input.shift) {
     showWindow();
     win.webContents.focus();
@@ -502,9 +551,20 @@ function createTray() {
   const img = nativeImage.createFromPath(ICON_PATH).resize({ width: 16, height: 16 });
   tray = new Tray(img);
   tray.setToolTip('Multi WA');
+  buildTrayMenu();
+  tray.on('click', showWindow);
+}
+
+function buildTrayMenu() {
   tray.setContextMenu(
     Menu.buildFromTemplate([
       { label: 'Buka Multi WA', click: showWindow },
+      {
+        label: 'Teks buram (mode privasi)\tCtrl+Shift+B',
+        type: 'checkbox',
+        checked: !!state.privacy,
+        click: (item) => setPrivacy(item.checked),
+      },
       {
         label: 'Jalankan saat Windows menyala',
         type: 'checkbox',
@@ -522,7 +582,6 @@ function createTray() {
       { label: 'Keluar', click: () => { isQuitting = true; app.quit(); } },
     ]),
   );
-  tray.on('click', showWindow);
 }
 
 function createWindow() {
