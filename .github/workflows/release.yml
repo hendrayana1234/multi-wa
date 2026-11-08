@@ -22,13 +22,31 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Buat tag v<versi> jika belum ada
+
+      - name: Siapkan tag dan rilis
         shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           $v = node -p "require('./package.json').version"
-          git tag "v$v" 2>$null
-          git push origin "v$v" 2>$null
+          $tag = "v$v"
+
+          # Hapus rilis rusak/duplikat: semua rilis bertag $tag, dan rilis lama tanpa latest.yml.
+          $releases = gh api "repos/$env:GITHUB_REPOSITORY/releases?per_page=100" | ConvertFrom-Json
+          foreach ($r in $releases) {
+            $names = @($r.assets | ForEach-Object { $_.name })
+            if ($r.tag_name -eq $tag -or -not ($names -contains 'latest.yml')) {
+              Write-Host "Hapus rilis $($r.tag_name) (id $($r.id))"
+              gh api -X DELETE "repos/$env:GITHUB_REPOSITORY/releases/$($r.id)" | Out-Null
+            }
+          }
+
+          # Buat tag jika belum ada, lalu buat SATU rilis kosong; electron-builder mengisinya.
+          git tag $tag 2>$null
+          git push origin $tag 2>$null
+          gh release create $tag --title "Multi WA $v" --notes "Pembaruan otomatis tersedia dari dalam aplikasi." --latest
           exit 0
+
       - run: npm run release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
