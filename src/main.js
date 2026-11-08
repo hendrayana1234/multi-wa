@@ -79,7 +79,8 @@ function publicState() {
 
 function pushState() {
   if (win && !win.isDestroyed()) win.webContents.send('state', publicState());
-  const total = [...views.values()].reduce((n, v) => n + v.unread, 0);
+  // Akun yang dibisukan tidak ikut dihitung di judul jendela, tray, dan badge taskbar.
+  const total = [...views].reduce((n, [id, v]) => n + (accountOf(id)?.muted ? 0 : v.unread), 0);
   let title = total ? `(${total}) Multi WA` : 'Multi WA';
   if (downloadPercent !== null) title += ` — mengunduh pembaruan ${downloadPercent}%`;
   if (win && !win.isDestroyed()) win.setTitle(title);

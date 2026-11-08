@@ -28,7 +28,7 @@ function render(s) {
       btn.className = 'acc' + (acc.id === s.active ? ' active' : '');
       btn.setAttribute('role', 'listitem');
       btn.title = `${acc.name}${i < 9 ? `  (Ctrl+${i + 1})` : ''}\nKlik kanan untuk opsi`;
-      btn.setAttribute('aria-label', acc.unread ? `${acc.name}, ${acc.unread} belum dibaca` : acc.name);
+      btn.setAttribute('aria-label', acc.unread && !acc.muted ? `${acc.name}, ${acc.unread} belum dibaca` : acc.name);
 
       const avatar = document.createElement('span');
       avatar.className = 'avatar';
@@ -48,7 +48,7 @@ function render(s) {
         btn.append(mute);
         btn.setAttribute('aria-label', btn.getAttribute('aria-label') + ', notifikasi dimatikan');
       }
-      if (acc.unread > 0) {
+      if (acc.unread > 0 && !acc.muted) {
         const badge = document.createElement('span');
         badge.className = 'badge';
         badge.textContent = acc.unread > 99 ? '99+' : String(acc.unread);
@@ -64,7 +64,7 @@ function render(s) {
       return btn;
     }),
   );
-  updateTaskbarBadge(s.accounts.reduce((n, a) => n + a.unread, 0));
+  updateTaskbarBadge(s.accounts.reduce((n, a) => n + (a.muted ? 0 : a.unread), 0));
 }
 
 // Ikon kecil merah berisi angka untuk taskbar Windows.
