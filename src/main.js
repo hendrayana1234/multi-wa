@@ -71,6 +71,7 @@ function publicState() {
       id: a.id,
       name: a.name,
       color: a.color,
+      muted: !!a.muted,
       unread: views.get(a.id)?.unread || 0,
     })),
   };
@@ -151,7 +152,7 @@ function createView(acc) {
     const increased = unread > entry.unread;
     entry.unread = unread;
     pushState();
-    if (increased && win && !win.isFocused()) win.flashFrame(true);
+    if (increased && !acc.muted && win && !win.isFocused()) win.flashFrame(true);
   });
 
   wc.on('context-menu', (_e, p) => {
@@ -184,6 +185,10 @@ function createView(acc) {
   });
 
   wc.on('before-input-event', handleShortcut);
+
+  // Status bisu dikirim ke halaman setiap selesai dimuat (termasuk setelah reload).
+  wc.setAudioMuted(!!acc.muted);
+  wc.on('did-finish-load', () => wc.send('muted', !!accountOf(acc.id)?.muted));
 
   wc.on('render-process-gone', (_e, details) => {
     if (details.reason !== 'clean-exit') setTimeout(() => !wc.isDestroyed() && wc.reload(), 1500);
@@ -268,6 +273,17 @@ async function cleanReload(id) {
   entry.view.webContents.loadURL(WA_URL, { userAgent: CHROME_UA });
 }
 
+function setMuted(id, muted) {
+  const acc = accountOf(id);
+  const entry = views.get(id);
+  if (!acc || !entry) return;
+  acc.muted = !!muted;
+  entry.view.webContents.setAudioMuted(acc.muted);
+  entry.view.webContents.send('muted', acc.muted);
+  saveState();
+  pushState();
+}
+
 function moveAccount(id, delta) {
   const i = state.accounts.findIndex((a) => a.id === id);
   const j = i + delta;
@@ -348,6 +364,13 @@ ipcMain.handle('account:menu', (_e, id) => {
       { label: acc.name, enabled: false },
       { type: 'separator' },
       { label: 'Ganti nama…', click: pick('rename') },
+      {
+        label: 'Notifikasi & suara',
+        type: 'checkbox',
+        checked: !acc.muted,
+        click: (item) => setMuted(id, !item.checked),
+      },
+      { type: 'separator' },
       { label: 'Muat ulang', click: () => views.get(id)?.view.webContents.reload() },
       { label: 'Muat ulang bersih (jika macet)', click: () => cleanReload(id) },
       { type: 'separator' },

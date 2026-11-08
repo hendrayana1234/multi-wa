@@ -40,6 +40,14 @@ function render(s) {
       name.textContent = acc.name;
 
       btn.append(avatar, name);
+      if (acc.muted) {
+        const mute = document.createElement('span');
+        mute.className = 'muted';
+        mute.title = 'Notifikasi dimatikan';
+        mute.innerHTML = '<svg viewBox="0 0 24 24" width="11" height="11" aria-hidden="true"><path d="M3 3l18 18M18 16v-5a6 6 0 0 0-9.3-5M6 10v6l-2 2h14M10 20a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        btn.append(mute);
+        btn.setAttribute('aria-label', btn.getAttribute('aria-label') + ', notifikasi dimatikan');
+      }
       if (acc.unread > 0) {
         const badge = document.createElement('span');
         badge.className = 'badge';

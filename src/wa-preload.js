@@ -1,10 +1,14 @@
-// Dimuat di setiap tampilan WhatsApp Web.
-// Tugasnya hanya satu: saat notifikasi diklik, beri tahu aplikasi supaya
-// jendela muncul dan pindah ke akun yang menerima pesan.
+// Dimuat di setiap tampilan WhatsApp Web. Dua tugas:
+// 1. Saat notifikasi diklik, beri tahu aplikasi supaya jendela muncul dan pindah ke akunnya.
+// 2. Jika akun dibisukan, notifikasi tidak ditampilkan sama sekali.
 const { contextBridge, ipcRenderer, webFrame } = require('electron');
+
+let muted = false;
+ipcRenderer.on('muted', (_e, value) => { muted = !!value; });
 
 contextBridge.exposeInMainWorld('__multiwa', {
   notificationClicked: () => ipcRenderer.send('wa:notification-click'),
+  isMuted: () => muted,
 });
 
 function wrapNotification() {
@@ -12,6 +16,12 @@ function wrapNotification() {
   if (!Original || Original.__multiwaWrapped) return;
   class Wrapped extends Original {
     constructor(title, options) {
+      if (window.__multiwa?.isMuted()) {
+        // Objek tiruan: WhatsApp tetap mengira notifikasi tampil, padahal tidak.
+        const stub = new EventTarget();
+        Object.assign(stub, { title, ...(options || {}), close() {}, onclick: null, onclose: null, onerror: null, onshow: null });
+        return stub;
+      }
       super(title, options);
       this.addEventListener('click', () => window.__multiwa?.notificationClicked());
     }
