@@ -11,7 +11,7 @@ Di baliknya, tiap akun adalah WhatsApp Web resmi (`web.whatsapp.com`) yang ditau
 - Sidebar dengan nama akun & jumlah pesan belum dibaca
 - Notifikasi Windows; klik notifikasi langsung membuka akun yang menerima pesan
 - Badge angka di ikon taskbar, ikon berkedip saat ada pesan baru
-- Tetap jalan di tray saat jendela ditutup (opsi "Jalankan saat Windows menyala" di menu tray)
+- Tetap jalan di tray saat jendela ditutup (opsi "Jalankan saat Windows menyala" di menu tray; saat startup aplikasi mulai tersembunyi di tray)
 - Klik kanan ikon akun: ganti nama, matikan notifikasi & suara per akun, muat ulang, muat ulang bersih (jika macet), urutkan, hapus
 - Tautan dari chat dibuka di browser biasa
 

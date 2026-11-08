@@ -413,7 +413,8 @@ function createTray() {
         label: 'Jalankan saat Windows menyala',
         type: 'checkbox',
         checked: app.getLoginItemSettings().openAtLogin,
-        click: (item) => app.setLoginItemSettings({ openAtLogin: item.checked }),
+        // Saat dijalankan dari startup, mulai tersembunyi di tray (--hidden).
+        click: (item) => app.setLoginItemSettings({ openAtLogin: item.checked, args: ['--hidden'] }),
       },
       { type: 'separator' },
       { label: 'Periksa pembaruan…', click: () => updater.checkNow() },
@@ -448,7 +449,8 @@ function createWindow() {
   win.setMenu(null);
   win.loadFile(path.join(__dirname, 'index.html'));
   win.webContents.on('before-input-event', handleShortcut);
-  win.once('ready-to-show', () => win.show());
+  const startHidden = process.argv.includes('--hidden') || app.getLoginItemSettings().wasOpenedAtLogin;
+  win.once('ready-to-show', () => { if (!startHidden) win.show(); });
 
   for (const ev of ['resize', 'maximize', 'unmaximize', 'restore']) win.on(ev, layout);
   win.on('focus', () => win.flashFrame(false));
