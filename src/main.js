@@ -38,6 +38,10 @@ const ICON_PATH = path.join(__dirname, 'icon.png');
 
 app.setAppUserModelId(APP_ID); // perlu agar notifikasi Windows muncul
 
+// Video HEVC/H.265 (umum dari iPhone & Android mode efisiensi tinggi): pakai dekoder bawaan
+// Windows (butuh "HEVC Video Extensions" dari Microsoft Store) agar bisa diputar di WhatsApp Web.
+app.commandLine.appendSwitch('enable-features', 'PlatformHEVCDecoderSupport');
+
 if (!app.requestSingleInstanceLock()) {
   app.quit();
   process.exit(0);
