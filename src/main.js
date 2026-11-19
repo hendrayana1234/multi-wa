@@ -351,6 +351,17 @@ function setPrivacy(on) {
   if (tray) buildTrayMenu();
 }
 
+// ---------- Muat ulang semua akun ----------
+function reloadAll() {
+  // Diberi jeda singkat antar akun supaya tidak membebani komputer sekaligus.
+  let delay = 0;
+  for (const { view } of views.values()) {
+    const wc = view.webContents;
+    setTimeout(() => { if (!wc.isDestroyed()) wc.reload(); }, delay);
+    delay += 400;
+  }
+}
+
 // ---------- Sembunyikan panel akun ----------
 function setSidebarHidden(hidden) {
   state.sidebarHidden = !!hidden;
@@ -490,7 +501,10 @@ function handleShortcut(event, input) {
     win.webContents.focus();
     win.webContents.send('open-add');
     event.preventDefault();
-  } else if (key === 'r' && !input.shift && active) {
+  } else if (key === 'r' && input.shift) {
+    reloadAll();
+    event.preventDefault();
+  } else if (key === 'r' && active) {
     active.reload();
     event.preventDefault();
   } else if ((key === '=' || key === '+') && active) {
@@ -548,6 +562,7 @@ ipcMain.handle('account:menu', (_e, id) => {
       { type: 'separator' },
       { label: 'Muat ulang', click: () => views.get(id)?.view.webContents.reload() },
       { label: 'Muat ulang bersih (jika macet)', click: () => cleanReload(id) },
+      { label: 'Muat ulang semua akun', click: reloadAll },
       { type: 'separator' },
       { label: 'Pindah ke atas', enabled: index > 0, click: () => moveAccount(id, -1) },
       { label: 'Pindah ke bawah', enabled: index < state.accounts.length - 1, click: () => moveAccount(id, 1) },
@@ -608,6 +623,8 @@ function buildTrayMenu() {
         // Saat dijalankan dari startup, mulai tersembunyi di tray (--hidden).
         click: (item) => app.setLoginItemSettings({ openAtLogin: item.checked, args: ['--hidden'] }),
       },
+      { type: 'separator' },
+      { label: 'Muat ulang semua akun\tCtrl+Shift+R', click: reloadAll },
       { type: 'separator' },
       { label: 'Ekspor pengaturan…', click: exportSettings },
       { label: 'Impor pengaturan…', click: importSettings },

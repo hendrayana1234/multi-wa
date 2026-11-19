@@ -28,6 +28,7 @@ Di baliknya, tiap akun adalah WhatsApp Web resmi (`web.whatsapp.com`) yang ditau
 | `Ctrl` + `Shift` + `B` | Teks buram (mode privasi) nyala/mati |
 | `Ctrl` + `Shift` + `H` | Sembunyikan / tampilkan panel akun |
 | `Ctrl` + `R` | Muat ulang akun aktif |
+| `Ctrl` + `Shift` + `R` | Muat ulang semua akun |
 | `Ctrl` + `+` / `-` / `0` | Perbesar / perkecil / normal |
 
 ## Pembaruan otomatis
