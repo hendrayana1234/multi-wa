@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <title>Tidak terhubung</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #111b21; color: #e9edef;
+      font: 15px/1.5 "Segoe UI", system-ui, sans-serif; display: grid; place-items: center; user-select: none; }
+    .card { text-align: center; max-width: 380px; padding: 24px; }
+    .icon { width: 64px; height: 64px; margin: 0 auto 16px; border-radius: 50%; background: #202c33;
+      display: grid; place-items: center; color: #8696a0; }
+    h1 { font-size: 20px; font-weight: 600; margin: 0 0 6px; }
+    p { margin: 0 0 18px; color: #8696a0; }
+    button { font: inherit; font-weight: 600; color: #062b21; background: #25a884; border: 0;
+      border-radius: 999px; padding: 10px 22px; cursor: pointer; }
+    button:hover { filter: brightness(1.08); }
+    .detail { margin-top: 14px; font-size: 12px; color: #667781; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">
+      <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true">
+        <path d="M2 8.5a15 15 0 0 1 20 0M5 12a10 10 0 0 1 14 0M8.5 15.5a5 5 0 0 1 7 0M12 19h.01M3 3l18 18"
+              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+    </div>
+    <h1>Tidak bisa terhubung ke WhatsApp</h1>
+    <p>Periksa koneksi internet. Mencoba lagi dalam <b id="n">…</b> detik.</p>
+    <button id="retry">Coba sekarang</button>
+    <div class="detail" id="detail"></div>
+  </div>
+  <script>
+    const q = new URLSearchParams(location.search);
+    let n = Number(q.get('wait') || 10);
+    const el = document.getElementById('n');
+    document.getElementById('detail').textContent = q.get('reason') || '';
+    const go = () => { location.href = 'https://web.whatsapp.com/'; };
+    document.getElementById('retry').addEventListener('click', go);
+    window.addEventListener('online', go);
+    const tick = () => { el.textContent = n; if (n-- <= 0) go(); else setTimeout(tick, 1000); };
+    tick();
+  </script>
+</body>
+</html>

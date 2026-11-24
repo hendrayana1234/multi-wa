@@ -144,5 +144,7 @@ const sidebar = $('sidebar');
 sidebar.addEventListener('mouseenter', () => { if (current.sidebarHidden) api.peek(true); });
 sidebar.addEventListener('mouseleave', () => { if (current.sidebarHidden) api.peek(false); });
 
+window.addEventListener('online', () => api.netOnline());
+
 api.onState(render);
 api.getState().then(render);

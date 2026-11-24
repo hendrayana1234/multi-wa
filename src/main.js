@@ -164,7 +164,7 @@ function createView(acc) {
     return { action: 'deny' };
   });
   wc.on('will-navigate', (event, url) => {
-    if (!url.startsWith('https://web.whatsapp.com')) {
+    if (!url.startsWith('https://web.whatsapp.com') && !url.startsWith('file://')) {
       event.preventDefault();
       if (/^https?:\/\//i.test(url)) shell.openExternal(url);
     }
@@ -226,6 +226,25 @@ function createView(acc) {
 
   wc.on('render-process-gone', (_e, details) => {
     if (details.reason !== 'clean-exit') setTimeout(() => !wc.isDestroyed() && wc.reload(), 1500);
+  });
+
+  // Gagal memuat (internet putus, pindah ke hotspot, DNS operator bermasalah):
+  // tampilkan layar "tidak terhubung" yang mencoba lagi sendiri, makin lama makin jarang.
+  wc.on('did-fail-load', (_e, code, desc, url, isMainFrame) => {
+    if (!isMainFrame || code === -3 /* dibatalkan, mis. karena reload */) return;
+    const entry = views.get(acc.id);
+    if (!entry) return;
+    entry.failures = (entry.failures || 0) + 1;
+    const wait = Math.min(10 * entry.failures, 60);
+    const reason = `${desc || 'ERR'} (${code})`;
+    const page = `file://${path.join(__dirname, 'offline.html')}?wait=${wait}&reason=${encodeURIComponent(reason)}`;
+    if (!wc.isDestroyed()) wc.loadURL(page);
+  });
+  wc.on('did-finish-load', () => {
+    if (wc.getURL().startsWith(WA_URL)) {
+      const entry = views.get(acc.id);
+      if (entry) entry.failures = 0;
+    }
   });
 
   wc.loadURL(WA_URL, { userAgent: CHROME_UA });
@@ -350,6 +369,14 @@ function setPrivacy(on) {
   pushState();
   if (tray) buildTrayMenu();
 }
+
+// Internet tersambung kembali (dilaporkan sidebar): muat ulang akun yang sedang gagal.
+ipcMain.on('net:online', () => {
+  for (const entry of views.values()) {
+    const wc = entry.view.webContents;
+    if (!wc.isDestroyed() && !wc.getURL().startsWith(WA_URL)) wc.loadURL(WA_URL, { userAgent: CHROME_UA });
+  }
+});
 
 // ---------- Muat ulang semua akun ----------
 function reloadAll() {

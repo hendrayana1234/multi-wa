@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld('multiwa', {
   overlay: (open) => ipcRenderer.invoke('overlay', open),
   setBadge: (dataUrl, count) => ipcRenderer.send('badge', dataUrl, count),
   peek: (on) => ipcRenderer.send('sidebar:peek', on),
+  netOnline: () => ipcRenderer.send('net:online'),
   onState: (cb) => ipcRenderer.on('state', (_e, s) => cb(s)),
   onOpenAdd: (cb) => ipcRenderer.on('open-add', () => cb()),
 });
