@@ -1,7 +1,7 @@
 {
   "name": "multi-wa",
   "productName": "Multi WA",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "description": "Buka beberapa akun WhatsApp sekaligus di Windows",
   "main": "src/main.js",
   "author": "Hendrayana",

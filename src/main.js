@@ -129,6 +129,7 @@ function activate(id) {
   if (!views.has(id)) return;
   activeId = id;
   refreshVisibility();
+  if (views.get(id).pending) startLoad(id); // akun yang dibuka pengguna langsung dimuat
   views.get(id).view.webContents.focus();
   pushState();
   saveState();
@@ -142,7 +143,7 @@ function configureSession(ses) {
   ses.setPermissionCheckHandler((_wc, permission) => allowed.has(permission));
 }
 
-function createView(acc) {
+function createView(acc, deferLoad = false) {
   const partition = partitionOf(acc.id);
   configureSession(session.fromPartition(partition));
 
@@ -247,11 +248,43 @@ function createView(acc) {
     }
   });
 
-  wc.loadURL(WA_URL, { userAgent: CHROME_UA });
   win.contentView.addChildView(view);
-  views.set(acc.id, { view, unread: 0, cssKey: null });
+  views.set(acc.id, { view, unread: 0, cssKey: null, pending: true });
   layout();
   refreshVisibility();
+  if (!deferLoad) startLoad(acc.id);
+}
+
+// ---------- Pemuatan bergiliran ----------
+// Lewat koneksi lambat (hotspot seluler), memuat semua akun sekaligus membuat semuanya macet.
+// Jadi akun dimuat satu per satu: yang aktif dulu, lalu sisanya; akun yang diklik didahulukan.
+let loading = null; // id akun yang sedang dimuat
+const LOAD_GAP = 1500;
+const LOAD_TIMEOUT = 45 * 1000;
+
+function startLoad(id) {
+  const entry = views.get(id);
+  if (!entry || !entry.pending) return;
+  entry.pending = false;
+  loading = id;
+  const wc = entry.view.webContents;
+  const done = () => {
+    if (loading !== id) return;
+    loading = null;
+    setTimeout(loadNext, LOAD_GAP);
+  };
+  wc.once('did-finish-load', done);
+  wc.once('did-fail-load', done);
+  setTimeout(done, LOAD_TIMEOUT); // jangan sampai antrean tersangkut pada satu akun yang macet
+  wc.loadURL(WA_URL, { userAgent: CHROME_UA });
+}
+
+function loadNext() {
+  if (loading !== null) return;
+  // Prioritas: akun aktif, lalu sesuai urutan di panel.
+  const order = [activeId, ...state.accounts.map((a) => a.id)];
+  const next = order.find((id) => id && views.get(id)?.pending);
+  if (next) startLoad(next);
 }
 
 function destroyView(id) {
@@ -374,19 +407,17 @@ function setPrivacy(on) {
 ipcMain.on('net:online', () => {
   for (const entry of views.values()) {
     const wc = entry.view.webContents;
-    if (!wc.isDestroyed() && !wc.getURL().startsWith(WA_URL)) wc.loadURL(WA_URL, { userAgent: CHROME_UA });
+    if (!wc.isDestroyed() && !wc.getURL().startsWith(WA_URL)) entry.pending = true;
   }
+  loadNext();
 });
 
 // ---------- Muat ulang semua akun ----------
 function reloadAll() {
-  // Diberi jeda singkat antar akun supaya tidak membebani komputer sekaligus.
-  let delay = 0;
-  for (const { view } of views.values()) {
-    const wc = view.webContents;
-    setTimeout(() => { if (!wc.isDestroyed()) wc.reload(); }, delay);
-    delay += 400;
-  }
+  // Semua akun masuk antrean lagi dan dimuat bergiliran, akun aktif lebih dulu.
+  for (const entry of views.values()) entry.pending = true;
+  loading = null;
+  loadNext();
 }
 
 // ---------- Sembunyikan panel akun ----------
@@ -709,9 +740,9 @@ function createWindow() {
     }
   });
 
-  for (const acc of state.accounts) createView(acc);
+  for (const acc of state.accounts) createView(acc, true);
   const startId = accountOf(state.active) ? state.active : state.accounts[0]?.id;
-  if (startId) activate(startId);
+  if (startId) activate(startId); // memulai antrean: akun aktif dulu, lalu sisanya bergiliran
   layout();
 }
 
